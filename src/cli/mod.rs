@@ -82,7 +82,7 @@ pub fn handle_cli() {
 pub(crate) fn run(json_input: &str) {
     match deserialize(&json_input) {
         Ok(value) => {
-            println!("{}", value.t0_json_string());
+            println!("{}", value.to_json_string());
         }
         Err(e) => eprintln!("Error parsing JSON: {}", e),
     }

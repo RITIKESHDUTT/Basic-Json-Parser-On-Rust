@@ -3,7 +3,7 @@ use crate::parser::StringEscaper;
 
 impl JsonValue{
 
-    pub(crate) fn t0_json_string(&self) -> String {
+    pub(crate) fn to_json_string(&self) -> String {
         self.format(0, false)
     }
     pub(crate)  fn to_json_string_pretty(&self) -> String{

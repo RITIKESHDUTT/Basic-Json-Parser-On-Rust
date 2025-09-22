@@ -12,5 +12,5 @@ pub fn serialize_pretty(value: &JsonValue) -> String {
 }
 
 pub fn serialize(value: &JsonValue) -> String {
-    value.t0_json_string()
+    value.to_json_string()
 }
