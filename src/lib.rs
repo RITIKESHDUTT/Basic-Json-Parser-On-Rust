@@ -1,8 +1,9 @@
 mod core;
 mod io;
 mod engine;
-pub mod driver;
+mod driver;
 
 #[cfg(test)]
 mod tests;
+pub mod cli;
 
