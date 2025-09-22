@@ -58,7 +58,6 @@ pub fn handle_cli() {
                     }
                 }
                 Some(path) => {
-                    // fallback to old file behavior
                     if let Err(e) = run_file(path) {
                         eprintln!("Error: {}", e);
                     }
