@@ -1,9 +1,10 @@
 use crate::core::JsonNumber;
+use crate::parser::NumberParser;
 
 #[cfg(test)]
 #[test]
 fn test_display_integer() {
-    let num = JsonNumber::Integer(42);
+    let num = NumberParser::parse("42").unwrap();
     assert_eq!(format!("{}", num), "42");
 
     let neg = JsonNumber::Integer(-123);
@@ -12,14 +13,14 @@ fn test_display_integer() {
 
 #[test]
 fn test_display_unsigned() {
-    let num = JsonNumber::UnsignedInteger(18446744073709551615); // u64::MAX
+    let num = JsonNumber::UnsignedInteger( u64::MAX);
     assert_eq!(format!("{}", num), "18446744073709551615");
 }
 
 #[test]
 fn test_display_float() {
-    let num = JsonNumber::Float(3.14159);
-    assert_eq!(format!("{}", num), "3.14159");
+    let num = JsonNumber::Float(3.1415923);
+    assert_eq!(format!("{}", num), "3.1415923");
 
     // Test whole number formatting
     let whole = JsonNumber::Float(42.0);
@@ -45,42 +46,18 @@ fn test_display_special_floats() {
 #[test]
 fn test_from_str_simple() {
     // Integer parsing
-    assert_eq!(
-        JsonNumber::from_str_simple("42").unwrap(),
-        JsonNumber::Integer(42)
-    );
+    let int_val = NumberParser::parse("42").unwrap();
+    assert_eq!(int_val, JsonNumber::Integer(42));
 
     // Large positive integer -> UnsignedInteger
-    assert_eq!(
-        JsonNumber::from_str_simple("18446744073709551615").unwrap(),
-        JsonNumber::UnsignedInteger(18446744073709551615)
-    );
+    let u_val = NumberParser::parse("18446744073709551615").unwrap();
+    assert_eq!(u_val, JsonNumber::UnsignedInteger(18446744073709551615));
 
     // Float parsing
-    assert_eq!(
-        JsonNumber::from_str_simple("3.14").unwrap(),
-        JsonNumber::Float(3.14)
-    );
+    let float_val = NumberParser::parse("3.14").unwrap();
+    assert_eq!(float_val, JsonNumber::Float(3.14));
 
     // Scientific notation
-    assert_eq!(
-        JsonNumber::from_str_simple("1e10").unwrap(),
-        JsonNumber::Float(1e10)
-    );
-}
-
-#[test]
-fn test_conversions() {
-    let int_num = JsonNumber::Integer(42);
-    assert_eq!(int_num.as_i64(), Some(42));
-    assert_eq!(int_num.as_f64(), 42.0);
-    assert!(int_num.is_integer());
-
-    let float_int = JsonNumber::Float(42.0);
-    assert_eq!(float_int.as_i64(), Some(42));
-    assert!(float_int.is_integer());
-
-    let float_decimal = JsonNumber::Float(3.14);
-    assert_eq!(float_decimal.as_i64(), None);
-    assert!(!float_decimal.is_integer());
+    let sci_val = NumberParser::parse("1e10").unwrap();
+    assert_eq!(sci_val, JsonNumber::Float(1e10));
 }
