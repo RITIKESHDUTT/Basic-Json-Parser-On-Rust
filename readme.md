@@ -10,7 +10,7 @@ This project provides:
 
 - A **custom JSON parser** capable of parsing objects, arrays, strings, numbers, booleans, and null values.
 - **Serialization back to JSON string** from parsed structures.
-- Simple **I/O helpers** for reading from standard input, reading/writing files.
+- Simple **I/O helpers** for reading/writing files.
 - Support for **nested JSON** and **long, multi-level JSON structures**.
 
 The parser demonstrates key Rust principles, including:
