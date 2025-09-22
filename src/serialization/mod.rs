@@ -2,7 +2,7 @@ use crate::core::JsonValue;
 use crate::parser::StringEscaper;
 
 impl JsonValue{
-    
+
     pub(crate) fn t0_json_string(&self) -> String {
         self.format(0, false)
     }

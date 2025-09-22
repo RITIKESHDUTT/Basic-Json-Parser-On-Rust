@@ -35,7 +35,7 @@ pub fn handle_cli() {
         }
         Some("file") => {
             match args.next().as_deref() {
-                Some("serialize") => {
+                Some("-serialize") => {
                     if let Some(path) = args.next() {
                         if let Err(e) = {
                             let input = read_from_file(&path).unwrap();
@@ -48,7 +48,7 @@ pub fn handle_cli() {
                         eprintln!("Usage: basic_json_parser file serialize <file_path>");
                     }
                 }
-                Some("deserialize") => {
+                Some("-deserialize") => {
                     if let Some(path) = args.next() {
                         if let Err(e) = run_file(&path) {
                             eprintln!("Error: {}", e);
@@ -72,7 +72,6 @@ pub fn handle_cli() {
             eprintln!("Usage:");
             eprintln!("  basic_json_parser run -serialize '<json_string>'");
             eprintln!("  basic_json_parser run -deserialize '<json_string>'");
-            eprintln!("  basic_json_parser interactive");
             eprintln!("  basic_json_parser file serialize <file_path>");
             eprintln!("  basic_json_parser file deserialize <file_path>");
         }
