@@ -31,10 +31,10 @@ The parser demonstrates key Rust principles, including:
     - `Array` of JSON values
     - `Object` with string keys
 - CLI support:
-    - ` basic_json_parser run -serialize '<json_string>'` —  serialize json in cli
-    - `basic_json_parser run -deserialize '<json_string>'` — deserialize json in cli
-    - `basic_json_parser file serialize <input_file> <output_file>` — read JSON from a file and write the result to an output file.
-    - `basic_json_parser file deserialize <input_file> <output_file>`- read JSON from a file and write the deserialized result to an output file
+    - `run -serialize '<json_string>'` —  serialize json in cli
+    - `run -deserialize '<json_string>'` — deserialize json in cli
+    - `file serialize <input_file> <output_file>` — read JSON from a file and write the result to an output file.
+    - `file deserialize <input_file> <output_file>`- read JSON from a file and write the deserialized result to an output file
 - Error reporting with line and column information using `JsonError`.
 - Follows Rust best practices: ownership, borrowing, and error handling without panics.
 
