@@ -75,9 +75,9 @@ pub(crate) fn run(json_input: &str) {
     }
 }
 
-pub(crate) fn run_file(path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let input = read_from_file(path)?;
+pub(crate) fn run_file(input_path: &str, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let input = read_from_file(input_path)?;
     let value = deserialize(&input)?;
-    write_to_file("output.json", &serialize(&value))?;
+    write_to_file(output_path, &serialize(&value))?;
     Ok(())
 }
