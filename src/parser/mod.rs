@@ -79,7 +79,6 @@ impl StringEscaper {
             _ => Err(JsonError::InvalidEscapeSequence {line: 0 , col: 0}),
         }
     }
-    #[allow(dead_code)]
     pub(crate) fn parse_unicode_hex(hex:&str) -> Result<char, JsonError> {
         if hex.len() != 4 {
             return Err(JsonError::InvalidEscapeSequence {line: 0, col: 0});

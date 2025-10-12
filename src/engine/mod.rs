@@ -87,12 +87,19 @@ impl<'a> Lexer<'a> {
                                     }),
                                 }
                             }
-                            let ch = StringEscaper::parse_unicode_hex(&hex_chars)
-                                .map_err(|_| JsonError::InvalidEscapeSequence {
-                                    line:self.line,
-                                    col:self.col,
-                                })?;
+                            let first = u32::from_str_radix(&hex_chars, 16)
+                                .map_err(|_| JsonError::InvalidEscapeSequence { line:self.line, col:self.col })?;
+
+                            let ch = if (0xD800..=0xDBFF).contains(&first) {
+                                // high surrogate → handle edge case
+                                Self::parse_unicode_surrogate(first, self)?
+                            } else {
+                                // BMP → use original function
+                                StringEscaper::parse_unicode_hex(&hex_chars)?
+                            };
+
                             string.push(ch);
+
                         }
                         Some(c) => {
                             let escaped = StringEscaper::unescape_char(c)
@@ -116,6 +123,36 @@ impl<'a> Lexer<'a> {
             }
         }
     }
+
+    fn parse_unicode_surrogate(high: u32, lexer: &mut Lexer) -> Result<char, JsonError> {
+        // Expect literal '\u' for low surrogate
+        match (lexer.advance_char(), lexer.advance_char()) {
+            (Some('\\'), Some('u')) => {}
+            _ => return Err(JsonError::InvalidEscapeSequence { line: lexer.line, col: lexer.col }),
+        }
+
+        // Read low surrogate 4 hex digits
+        let mut low_hex = String::with_capacity(4);
+        for _ in 0..4 {
+            match lexer.advance_char() {
+                Some(c) if c.is_ascii_hexdigit() => low_hex.push(c),
+                _ => return Err(JsonError::InvalidEscapeSequence { line: lexer.line, col: lexer.col }),
+            }
+        }
+
+        let low = u32::from_str_radix(&low_hex, 16)
+            .map_err(|_| JsonError::InvalidEscapeSequence { line: lexer.line, col: lexer.col })?;
+
+        if !(0xDC00..=0xDFFF).contains(&low) {
+            return Err(JsonError::InvalidEscapeSequence { line: lexer.line, col: lexer.col });
+        }
+
+        // Combine into full code point
+        let codepoint = 0x10000 + ((high - 0xD800) << 10) + (low - 0xDC00);
+        char::from_u32(codepoint)
+            .ok_or(JsonError::InvalidEscapeSequence { line: lexer.line, col: lexer.col })
+    }
+
 
     fn parse_number(&mut self) -> Result<Token, JsonError> {
         let (start_line, start_col) = (self.line, self.col);
