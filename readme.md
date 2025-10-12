@@ -45,7 +45,7 @@ The parser demonstrates key Rust principles, including:
 1. Clone the repository:
 
 ```bash
-git@github.com:RITIKESHDUTT/Basic-Json-Parser-On-Rust.git
+git clone https://github.com/RITIKESHDUTT/Basic-Json-Parser-On-Rust.git
 
 cd Basic-Json-Parser-On-Rust
 ```
