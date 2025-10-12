@@ -30,37 +30,29 @@ pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
         Some("file") => {
             match args.next().as_deref() {
                 Some("-serialize") => {
-                    if let Some(path) = args.next() {
-                        if let Err(e) = {
-                            let input = read_from_file(&path).unwrap();
-                            let value = deserialize(&input).unwrap();
-                            write_to_file("output.json", &serialize_pretty(&value))
-                        } {
-                            eprintln!("Error: {}", e);
-                        }
+                    if let (Some(input_path), Some(output_path)) = (args.next(), args.next()) {
+                        let input = read_from_file(&input_path)?;
+                        let value = deserialize(&input)?;
+                        write_to_file(&output_path, &serialize_pretty(&value))?;
                     } else {
-                        eprintln!("Usage: basic_json_parser file serialize <file_path>");
+                        eprintln!("Usage: basic_json_parser file serialize <input_file> <output_file>");
                     }
                 }
                 Some("-deserialize") => {
-                    if let Some(path) = args.next() {
-                        if let Err(e) = run_file(&path) {
-                            eprintln!("Error: {}", e);
-                        }
+                    if let (Some(input_path), Some(output_path)) = (args.next(), args.next()) {
+                        run_file(&input_path, &output_path)?;
                     } else {
-                        eprintln!("Usage: basic_json_parser file deserialize <file_path>");
+                        eprintln!("Usage: basic_json_parser file deserialize <input_file> <output_file>");
                     }
                 }
                 Some(path) => {
-                    if let Err(e) = run_file(path) {
-                        eprintln!("Error: {}", e);
-                    }
+                    eprintln!("Unknown argument `{}` or missing output file.", path);
+                    eprintln!("Usage: basic_json_parser file serialize|deserialize <input_file> <output_file>");
                 }
-                None => {
-                    eprintln!("Usage: basic_json_parser file serialize|deserialize <file_path>");
-                }
+                None => eprintln!("Usage: basic_json_parser file serialize|deserialize <input_file> <output_file>"),
             }
-        } _ => {
+        }
+        _ => {
             eprintln!("Unknown command or missing arguments");
             eprintln!("Usage:");
             eprintln!("  basic_json_parser run -serialize '<json_string>'");
