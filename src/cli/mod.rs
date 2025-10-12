@@ -2,7 +2,7 @@ use std::env;
 use crate::driver::*;
 use crate::io::*;
 
-pub fn handle_cli() {
+pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
     let mut args = env::args().skip(1); // skip executable name
 
     match args.next().as_deref() {
@@ -10,11 +10,9 @@ pub fn handle_cli() {
             match args.next().as_deref() {
                 Some("-serialize") => {
                     if let Some(json_input) = args.next() {
-                        match deserialize(&json_input) {
-                            Ok(value) => println!("{}", serialize_pretty(&value)),
-                            Err(e) => eprintln!("Error parsing JSON: {}", e),
-                        }
-                    } else{
+                        let value = deserialize(&json_input)?;
+                        println!("{}", serialize_pretty(&value));
+                    } else {
                         eprintln!("Usage: basic_json_parser run -serialize '<json_string>'");
                     }
                 }
@@ -25,12 +23,8 @@ pub fn handle_cli() {
                         eprintln!("Usage: basic_json_parser run -deserialize '<json_string>'");
                     }
                 }
-                Some(json_input) => {
-                    run(json_input);
-                }
-                None => {
-                    eprintln!("Usage: basic_json_parser run -serialize|-deserialize '<json_string>'");
-                }
+                Some(json_input) => run(json_input),
+                None => eprintln!("Usage: basic_json_parser run -serialize|-deserialize '<json_string>'"),
             }
         }
         Some("file") => {
