@@ -57,10 +57,12 @@ pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
             eprintln!("Usage:");
             eprintln!("  basic_json_parser run -serialize '<json_string>'");
             eprintln!("  basic_json_parser run -deserialize '<json_string>'");
-            eprintln!("  basic_json_parser file serialize <file_path>");
-            eprintln!("  basic_json_parser file deserialize <file_path>");
+            eprintln!("  basic_json_parser file serialize <input_file> <output_file>");
+            eprintln!("  basic_json_parser file deserialize <input_file> <output_file>");
         }
     }
+
+    Ok(())
 }
 
 
