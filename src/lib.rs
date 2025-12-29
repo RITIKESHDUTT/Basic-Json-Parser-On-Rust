@@ -9,3 +9,5 @@ pub mod cli;
 
 #[cfg(test)]
 mod tests;
+
+pub use self::core::{JsonValue, JsonNumber};

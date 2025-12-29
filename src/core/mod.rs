@@ -2,7 +2,7 @@ use std::fmt;
 use std::fmt::{ Formatter};
 
 #[derive(Debug, PartialEq, Clone)]
-pub(crate) enum JsonNumber{
+pub enum JsonNumber{
     Integer(i64),
     UnsignedInteger(u64),
     Float(f64)
