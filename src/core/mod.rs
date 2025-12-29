@@ -1,32 +1,8 @@
+mod json_number;
+pub use json_number::JsonNumber;
+
 use std::fmt;
 use std::fmt::{ Formatter};
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum JsonNumber{
-    Integer(i64),
-    UnsignedInteger(u64),
-    Float(f64)
-}
-
-impl fmt::Display for JsonNumber{
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self{
-            JsonNumber::Integer(i) => write!(f,"{}", i),
-            JsonNumber::UnsignedInteger(u) => write!(f, "{}", u),
-            JsonNumber::Float(fl) => {
-                if fl.is_nan() {
-                    write!(f, "null")
-                } else if fl.is_infinite(){
-                    write!(f, "null")
-                } else if fl.fract() == 0.0 && fl.abs() < 1e15{
-                    write!(f, "{:.0}", fl)
-                }else {
-                    write!(f, "{}", fl)
-                }
-            }
-        }
-    }
-}
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum Token {
