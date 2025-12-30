@@ -2,6 +2,30 @@ use crate::core::JsonValue;
 use crate::parser::StringEscaper;
 
 impl JsonValue{
+    /// Deep equality check with epsilon-based float comparison
+    pub fn equals(&self, other: &JsonValue) -> bool {
+        match (self, other) {
+            (JsonValue::Null, JsonValue::Null) => true,
+            (JsonValue::Bool(a), JsonValue::Bool(b)) => a == b,
+            (JsonValue::Number(a), JsonValue::Number(b)) => a.equals(b),
+            (JsonValue::String(a), JsonValue::String(b)) => a == b,
+            (JsonValue::Array(a), JsonValue::Array(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(x, y)| x.equals(y))
+            }
+            (JsonValue::Object(a), JsonValue::Object(b)) => {
+                if a.len() != b.len() {
+                    return false;
+                }
+                a.iter().all(|(k, v)| {
+                    b.iter()
+                        .find(|(bk, _)| bk == k)
+                        .map(|(_, bv)| v.equals(bv))
+                        .unwrap_or(false)
+                })
+            }
+            _ => false,
+        }
+    }
 
     pub(crate) fn to_json_string(&self) -> String {
         self.format(0, false)
@@ -10,7 +34,7 @@ impl JsonValue{
         self.format(0, true)
     }
     fn format(&self, indent: usize, pretty: bool) -> String{
-        use JsonValue::*;
+        use crate::core::JsonValue::*;
         match self {
             Null => "null".to_string(),
             Bool(b) => b.to_string(),
