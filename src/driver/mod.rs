@@ -1,12 +1,15 @@
-use crate::core::{JsonValue, JsonError};
+use crate::core::ParserLimits;
+use crate::core::JsonError;
+use crate::core::JsonValue;
 use crate::engine::Parser;
 
 
 pub fn deserialize(input: &str) -> Result<JsonValue, JsonError> {
-    let mut parser = Parser::new(input)?;
-    parser.parse()
+    Parser::new(input)?.parse()
 }
-
+pub fn deserialize_with_limits(input: &str, limits: ParserLimits) -> Result<JsonValue, JsonError> {
+    Parser::with_limits(input, limits)?.parse()
+}
 pub fn serialize_pretty(value: &JsonValue) -> String {
     value.to_json_string_pretty()
 }

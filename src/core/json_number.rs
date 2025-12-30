@@ -1,4 +1,3 @@
-use crate::JsonValue;
 use std::fmt;
 use std::fmt::{ Formatter};
 
@@ -86,23 +85,12 @@ impl JsonNumber {
 	#[inline]
 	pub fn as_i32(&self) -> Option<i32> {
 		match self {
-			JsonNumber::Integer(i) => {
-				if *i >= i32::MIN as i64 && *i <= i32::MAX as i64 {
-					Some(*i as i32)
-				} else {
-					None
-				}
-			},
-			JsonNumber::UnsignedInteger(u) => {
-				if *u <= i32::MAX as u64 {
-					Some(*u as i32)
-				} else {
-					None
-				}
-			},
+			JsonNumber::Integer(i) => i32::try_from(*i).ok(),
+			JsonNumber::UnsignedInteger(u) => i32::try_from(*u).ok(),
 			JsonNumber::Float(_) => None,
 		}
 	}
+	
 	
 	/// Try to convert to u32
 	/// Returns None if value is negative, out of range, or float
@@ -110,22 +98,17 @@ impl JsonNumber {
 	pub fn as_u32(&self) -> Option<u32> {
 		match self {
 			JsonNumber::Integer(i) => {
-				if *i >= 0 && *i <= u32::MAX as i64 {
-					Some(*i as u32)
+				if *i >= 0 {
+					u32::try_from(*i).ok()
 				} else {
 					None
 				}
 			},
-			JsonNumber::UnsignedInteger(u) => {
-				if *u <= u32::MAX as u64 {
-					Some(*u as u32)
-				} else {
-					None
-				}
-			},
+			JsonNumber::UnsignedInteger(u) => u32::try_from(*u).ok(),
 			JsonNumber::Float(_) => None,
 		}
 	}
+	
 	
 	/// Try to convert to usize
 	/// Returns None if value is negative, out of range, or float
@@ -133,45 +116,33 @@ impl JsonNumber {
 	pub fn as_usize(&self) -> Option<usize> {
 		match self {
 			JsonNumber::Integer(i) => {
-				if *i >= 0 && *i <= usize::MAX as i64 {
-					Some(*i as usize)
+				// Use try_from to avoid overflow issues
+				if *i >= 0 {
+					usize::try_from(*i).ok()
 				} else {
 					None
 				}
 			},
 			JsonNumber::UnsignedInteger(u) => {
-				if *u <= usize::MAX as u64 {
-					Some(*u as usize)
-				} else {
-					None
-				}
+				usize::try_from(*u).ok()
 			},
 			JsonNumber::Float(_) => None,
 		}
 	}
+	
+	
 	
 	/// Try to convert to isize
 	/// Returns None if value is out of range or float
 	#[inline]
 	pub fn as_isize(&self) -> Option<isize> {
 		match self {
-			JsonNumber::Integer(i) => {
-				if *i >= isize::MIN as i64 && *i <= isize::MAX as i64 {
-					Some(*i as isize)
-				} else {
-					None
-				}
-			},
-			JsonNumber::UnsignedInteger(u) => {
-				if *u <= isize::MAX as u64 {
-					Some(*u as isize)
-				} else {
-					None
-				}
-			},
+			JsonNumber::Integer(i) => isize::try_from(*i).ok(),
+			JsonNumber::UnsignedInteger(u) => isize::try_from(*u).ok(),
 			JsonNumber::Float(_) => None,
 		}
 	}
+	
 	
 	/// Try to convert to f32
 	/// Returns None if float is out of f32 range, or if integer too large
@@ -554,34 +525,29 @@ impl PartialOrd<JsonNumber> for isize {
 		(*self as i64).partial_cmp(other)
 	}
 }
-//
-// // Example 1: Direct comparison with primitives
-// fn validate_minimum(&self, value: &JsonNumber, min: f64) -> bool {
-// 	value >= &min  // Direct comparison!
-// }
-//
-// // Example 2: Clean conversion
-// fn get_schema_version(obj: &[(String, JsonValue)]) -> Option<u32> {
-// 	match get_field(obj, "version") {
-// 		Some(JsonValue::Number(n)) => n.as_u32(),  // Clean!
-// 		_ => None,
-// 	}
-// }
-//
-// // Example 3: Type checking
-// fn validate_integer_type(value: &JsonValue) -> bool {
-// 	match value {
-// 		JsonValue::Number(n) => n.is_integer(),  // Clean!
-// 		_ => false,
-// 	}
-// }
-//
-// // Example 4: Safe equality
-// fn value_in_enum(value: &JsonNumber, allowed: &[JsonNumber]) -> bool {
-// 	allowed.iter().any(|n| n.equals(value))  // Handles float epsilon!
-// }
-//
-// // Example 5: Range checking
-// fn in_range(value: &JsonNumber, min: f64, max: f64) -> bool {
-// 	value >= &min && value <= &max  // Direct comparison!
-// }
+
+// Manual Eq implementation (treat NaN as equal for hashing)
+impl Eq for JsonNumber {}
+
+// Manual Hash implementation
+impl std::hash::Hash for JsonNumber {
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		// Discriminant to distinguish variants
+		std::mem::discriminant(self).hash(state);
+		
+		match self {
+			JsonNumber::Integer(i) => i.hash(state),
+			JsonNumber::UnsignedInteger(u) => u.hash(state),
+			JsonNumber::Float(f) => {
+				// Handle NaN consistently
+				if f.is_nan() {
+					// All NaNs hash to same value
+					0u64.hash(state);
+				} else {
+					// Hash the bit representation
+					f.to_bits().hash(state);
+				}
+			}
+		}
+	}
+}

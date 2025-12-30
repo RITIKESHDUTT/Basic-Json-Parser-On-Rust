@@ -1,5 +1,4 @@
 use crate::core::{JsonError, JsonNumber};
-
 pub struct NumberParser;
 
 impl NumberParser{
