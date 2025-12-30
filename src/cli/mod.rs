@@ -13,18 +13,18 @@ pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
                         let value = deserialize(&json_input)?;
                         println!("{}", serialize_pretty(&value));
                     } else {
-                        eprintln!("Usage: basic_json_parser run -serialize '<json_string>'");
+                        eprintln!("Usage: run -serialize '<json_string>'");
                     }
                 }
                 Some("-deserialize") => {
                     if let Some(json_input) = args.next() {
                         run(&json_input);
                     } else {
-                        eprintln!("Usage: basic_json_parser run -deserialize '<json_string>'");
+                        eprintln!("Usage: run -deserialize '<json_string>'");
                     }
                 }
                 Some(json_input) => run(json_input),
-                None => eprintln!("Usage: basic_json_parser run -serialize|-deserialize '<json_string>'"),
+                None => eprintln!("Usage: run -serialize|-deserialize '<json_string>'"),
             }
         }
         Some("file") => {
@@ -35,14 +35,14 @@ pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
                         let value = deserialize(&input)?;
                         write_to_file(&output_path, &serialize_pretty(&value))?;
                     } else {
-                        eprintln!("Usage: basic_json_parser file serialize <input_file> <output_file>");
+                        eprintln!("Usage: file serialize <input_file> <output_file>");
                     }
                 }
                 Some("-deserialize") => {
                     if let (Some(input_path), Some(output_path)) = (args.next(), args.next()) {
                         run_file(&input_path, &output_path)?;
                     } else {
-                        eprintln!("Usage: basic_json_parser file deserialize <input_file> <output_file>");
+                        eprintln!("Usage: file deserialize <input_file> <output_file>");
                     }
                 }
                 Some(path) => {
@@ -55,10 +55,10 @@ pub fn handle_cli() -> Result<(), Box<dyn std::error::Error>> {
         _ => {
             eprintln!("Unknown command or missing arguments");
             eprintln!("Usage:");
-            eprintln!("  basic_json_parser run -serialize '<json_string>'");
-            eprintln!("  basic_json_parser run -deserialize '<json_string>'");
-            eprintln!("  basic_json_parser file serialize <input_file> <output_file>");
-            eprintln!("  basic_json_parser file deserialize <input_file> <output_file>");
+            eprintln!(" run -serialize '<json_string>'");
+            eprintln!(" run -deserialize '<json_string>'");
+            eprintln!(" file -serialize <input_file> <output_file>");
+            eprintln!(" file -deserialize <input_file> <output_file>");
         }
     }
 

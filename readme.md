@@ -37,7 +37,23 @@ The parser demonstrates key Rust principles, including:
     - `file deserialize <input_file> <output_file>`- read JSON from a file and write the deserialized result to an output file
 - Error reporting with line and column information using `JsonError`.
 - Follows Rust best practices: ownership, borrowing, and error handling without panics.
+- **Security limits** — configurable max depth, string length, array/object size
 
+## Security Limits
+Protect against malicious input with configurable limits:
+```rust
+use basic_json_parser::{Parser, ParserLimits};
+fn main() {
+	let limits = ParserLimits {
+		max_depth: 128,
+		max_string_length: 10_000_000,
+		max_array_length: 100_000,
+		max_object_keys: 100_000,
+	};
+  let mut parser = Parser::with_limits(json, limits)?;
+  let value = parser.parse()?;
+}
+```
 ---
 
 ## Installation
@@ -49,4 +65,3 @@ git clone https://github.com/RITIKESHDUTT/Basic-Json-Parser-On-Rust.git
 
 cd Basic-Json-Parser-On-Rust
 ```
-

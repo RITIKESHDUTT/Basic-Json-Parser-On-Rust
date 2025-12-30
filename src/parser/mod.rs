@@ -1,9 +1,8 @@
 use crate::core::{JsonError, JsonNumber};
-
 pub struct NumberParser;
 
 impl NumberParser{
-    pub(crate) fn parse(s:&str) -> Result<JsonNumber, JsonError> {
+    pub fn parse(s:&str) -> Result<JsonNumber, JsonError> {
         if s.is_empty() {
             return Err(JsonError::InvalidNumber {line:0, col:0});
         }
@@ -101,4 +100,3 @@ impl StringEscaper {
         })
     }
 }
-

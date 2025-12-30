@@ -9,3 +9,8 @@ pub mod cli;
 
 #[cfg(test)]
 mod tests;
+
+
+pub use self::core::JsonNumber;
+pub use self::core::JsonValue;
+pub use self::engine::Parser;
