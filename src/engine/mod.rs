@@ -1,11 +1,8 @@
-use crate::core::ParserLimits;
 use std::string::String;
 use std::iter::Peekable;
 use std::str::Chars;
-use crate::core::{JsonError, Token};
-use crate::core::JsonValue;
+use crate::core::{JsonError, Token, JsonValue};
 use crate::parser::{NumberParser, StringEscaper};
-use crate::core::{MAX_STRING_LENGTH};
 
 pub struct Lexer<'a>{
     chars: Peekable<Chars<'a>>,
@@ -118,25 +115,8 @@ impl<'a> Lexer<'a> {
                         }),
                     }
                 }
-                Some(c) => {
-                    // Check string length limit
-                    if string.len() >= MAX_STRING_LENGTH {
-                        return Err(JsonError::MaxStringSizeExceeded {
-                            max: MAX_STRING_LENGTH
-                        });
-                    }
-                    if c >= '\x20' || c == '\t' || c == '\n' || c == '\r' {
-                        string.push(c);
-                    } else {
-                        return Err(JsonError::InvalidToken {
-                            line: self.line,
-                            col: self.col,
-                        });
-                    }
-                    string.push(c);
-                }
-                
-                None => return Err(JsonError::UnexpectedEof {  // ← Add this back
+                Some(c) => string.push(c),
+                None => return Err(JsonError::UnexpectedEof{
                     line: start_line,
                     col: start_col,
                 }),
@@ -213,26 +193,21 @@ impl<'a> Lexer<'a> {
 pub struct Parser <'a> {
     lexer: Lexer<'a>,
     current_token: Token,
-    depth: usize,
-    limits: ParserLimits,
 }
 
 impl<'a> Parser <'a> {
-    pub fn new(input: &'a str) -> Result<Self, JsonError> {
-        Self::with_limits(input, ParserLimits::default())
-    }
-    pub fn with_limits(input: &'a str, limits: ParserLimits) -> Result<Self, JsonError> {
+    pub(crate) fn new(input: &'a str) -> Result<Self, JsonError> {
         let mut lexer = Lexer::new(input);
         let current_token = lexer.next_token()?;
-        Ok(Self { lexer, current_token, depth: 0, limits })
+        Ok(Self {lexer, current_token})
     }
-    
+
     fn advance(&mut self) -> Result<(), JsonError> {
         self.current_token = self.lexer.next_token()?;
         Ok(())
     }
 
-    pub fn parse(&mut self) -> Result<JsonValue, JsonError>{
+    pub(crate) fn parse(&mut self) -> Result<JsonValue, JsonError>{
         let value = self.parse_value()?;
         if !matches!(self.current_token, Token::Eof) {
             return Err(JsonError::InvalidToken {
@@ -257,12 +232,6 @@ impl<'a> Parser <'a> {
     }
 
     fn parse_array(&mut self) -> Result<JsonValue, JsonError> {
-        // Check depth limit BEFORE descending
-        if self.depth >= self.limits.max_depth {
-            return Err(JsonError::MaxDepthExceeded { max: self.limits.max_depth });
-        }
-         self.depth += 1;
-        
         self.advance()?; // consume '['
         let mut elements = Vec::new();
 
@@ -272,9 +241,6 @@ impl<'a> Parser <'a> {
         }
 
         loop {
-            if elements.len() >= self.limits.max_array_length {
-                return Err(JsonError::MaxArraySizeExceeded {max: self.limits.max_array_length});
-            }
             elements.push(self.parse_value()?);
 
             match self.current_token {
@@ -286,57 +252,37 @@ impl<'a> Parser <'a> {
 
         Ok(JsonValue::Array(elements))
     }
-    
+
     fn parse_object(&mut self) -> Result<JsonValue, JsonError> {
-        if self.depth >= self.limits.max_depth {
-            return Err(JsonError::MaxDepthExceeded { max: self.limits.max_depth });
-        }
         self.advance()?; // consume '{'
-        let mut pairs = Vec::new(); // Use BTreeMap as discussed earlier
-        
+        let mut pairs = Vec::new();
+
         if matches!(self.current_token, Token::CurlyRight) {
             self.advance()?; // consume '}'
             return Ok(JsonValue::Object(pairs));
         }
-        
+
         loop {
-            // Check object size limit
-            if pairs.len() >= self.limits.max_object_keys {
-                return Err(JsonError::MaxObjectSizeExceeded { max: self.limits.max_object_keys });
-            }
-            // 1. Key must be a String
             let key = match &self.current_token {
                 Token::String(s) => { let key = s.clone(); self.advance()?; key }
                 _ => return Err(JsonError::InvalidToken { line: self.lexer.line, col: self.lexer.col }),
             };
-            
-            // 2. Must be followed by a Colon
+
             if !matches!(self.current_token, Token::Colon) {
                 return Err(JsonError::InvalidToken { line: self.lexer.line, col: self.lexer.col });
             }
             self.advance()?; // consume ':'
-            
-            // 3. Parse the Value
+
             let value = self.parse_value()?;
             pairs.push((key, value));
-            
-            // 4. Handle separators (Comma or Closing Brace)
+
             match self.current_token {
-                Token::Comma => {
-                    self.advance()?;
-                    // CRITICAL: Standard JSON does not allow a comma to be followed by '}'
-                    if matches!(self.current_token, Token::CurlyRight) {
-                        return Err(JsonError::InvalidToken { line: self.lexer.line, col: self.lexer.col });
-                    }
-                }
-                Token::CurlyRight => {
-                    self.advance()?;
-                    break;
-                }
+                Token::Comma => { self.advance()?; }
+                Token::CurlyRight => { self.advance()?; break; }
                 _ => return Err(JsonError::InvalidToken { line: self.lexer.line, col: self.lexer.col }),
             }
         }
-        
+
         Ok(JsonValue::Object(pairs))
     }
 }
